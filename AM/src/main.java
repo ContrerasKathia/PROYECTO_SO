@@ -96,7 +96,58 @@ public class main extends javax.swing.JFrame {
 ////////////////////////////////////////PABLO///////////////////////////////////////////////////////////////////
     
 /////////////////////////////MISHEL/////////////////////////////////////////////////
- 
+ public static ImageIcon obtenerIconoDeExe(String nombreProceso) {
+    try {
+        File f = new File("C:\\Windows\\System32\\" + nombreProceso);
+        if (f.exists()) {
+            javax.swing.Icon icon = FileSystemView.getFileSystemView().getSystemIcon(f);
+            return escalarIcono(icon, 16, 16);
+        }
+    } catch (Exception e) {
+        // ignorar
+    }
+
+// Ícono genérico: logo de Windows clásico sin fondo
+int size = 16;
+BufferedImage img = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+Graphics2D g2 = img.createGraphics();
+g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+// No se dibuja fondo: transparencia
+
+// Tamaño de cada panel
+int gap = 1;
+int w = (size - gap * 3) / 2;
+int h = (size - gap * 3) / 2;
+
+// Panel superior izquierdo (rojo)
+g2.setColor(new Color(198, 0, 0));
+g2.fillRect(gap, gap, w, h);
+
+// Panel superior derecho (verde)
+g2.setColor(new Color(0, 128, 0));
+g2.fillRect(gap * 2 + w, gap, w, h);
+
+// Panel inferior izquierdo (azul)
+g2.setColor(new Color(0, 102, 204));
+g2.fillRect(gap, gap * 2 + h, w, h);
+
+// Panel inferior derecho (amarillo)
+g2.setColor(new Color(255, 204, 0));
+g2.fillRect(gap * 2 + w, gap * 2 + h, w, h);
+
+g2.dispose();
+return new ImageIcon(img);
+}
+// Método auxiliar para escalar íconos de Windows
+private static ImageIcon escalarIcono(javax.swing.Icon icon, int w, int h) {
+    BufferedImage img = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+    Graphics g = img.createGraphics();
+    icon.paintIcon(null, g, 0, 0);
+    g.dispose();
+    return new ImageIcon(img.getScaledInstance(w, h, Image.SCALE_SMOOTH));
+}
+
 //////////////////////////////////ALISSON//////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////PABLO//////////////////////////////////////////////////////////////
@@ -392,7 +443,47 @@ public class main extends javax.swing.JFrame {
     private void nuevatareaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nuevatareaActionPerformed
         // TODO add your handling code here:
 ////////////////////MISHEL///////////////////////////////////////////////////                              
- 
+     JDialog dialogo = new JDialog(this, "Crear nueva tarea", true);
+    dialogo.setSize(420, 180);
+    dialogo.setLayout(null);
+    dialogo.setLocationRelativeTo(this);
+
+    JLabel lblTexto = new JLabel("Escriba el nombre del programa, carpeta, documento o recurso de Internet:");
+    lblTexto.setBounds(20, 10, 380, 20);
+    dialogo.add(lblTexto);
+
+    JLabel lblAbrir = new JLabel("Abrir:");
+    lblAbrir.setBounds(20, 40, 50, 20);
+    dialogo.add(lblAbrir);
+
+    JTextField campo = new JTextField();
+    campo.setBounds(70, 40, 320, 25);
+    dialogo.add(campo);
+
+    JCheckBox admin = new JCheckBox("Crear esta tarea con privilegios administrativos");
+    admin.setBounds(20, 70, 360, 20);
+    dialogo.add(admin);
+
+    JButton ejecutar = new JButton("Aceptar");
+    ejecutar.setBounds(300, 100, 90, 30);
+    dialogo.add(ejecutar);
+
+    ejecutar.addActionListener(ev -> {
+        String comando = campo.getText().trim();
+        if (!comando.isEmpty()) {
+            try {
+                String[] cmd = admin.isSelected()
+                    ? new String[]{"cmd", "/c", "start", "cmd", "/k", comando}
+                    : new String[]{"cmd", "/c", comando};
+                Runtime.getRuntime().exec(cmd);
+                dialogo.dispose();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialogo, "Error al ejecutar la tarea", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    });
+
+    dialogo.setVisible(true);
 
     }//GEN-LAST:event_nuevatareaActionPerformed
 
@@ -400,7 +491,62 @@ public class main extends javax.swing.JFrame {
       
        // TODO add your handling code here:       
       /////////// //MISHEL////////////////////////////////
- 
+ JDialog config = new JDialog(this, "Configuración", true);
+    config.setSize(400, 220);
+    config.setLayout(null);
+    config.setLocationRelativeTo(this);
+
+    JLabel lblTema = new JLabel("Tema de la aplicación:");
+    lblTema.setBounds(20, 20, 150, 20);
+    config.add(lblTema);
+
+    String[] opcionesTema = {"Claro", "Oscuro", "Usar configuración del sistema"};
+    JComboBox<String> comboTema = new JComboBox<>(opcionesTema);
+    comboTema.setBounds(180, 20, 180, 25);
+    config.add(comboTema);
+
+    JLabel lblInicio = new JLabel("Página de inicio predeterminada:");
+    lblInicio.setBounds(20, 60, 200, 20);
+    config.add(lblInicio);
+
+    String[] paginas = {"Procesos", "Rendimiento", "Usuarios", "Detalles"};
+    JComboBox<String> comboInicio = new JComboBox<>(paginas);
+    comboInicio.setBounds(180, 60, 180, 25);
+    config.add(comboInicio);
+
+    JButton guardar = new JButton("Guardar ⚙️");
+    guardar.setBounds(260, 120, 100, 30);
+    config.add(guardar);
+
+    guardar.addActionListener(e -> {
+        String temaSeleccionado = (String) comboTema.getSelectedItem();
+
+        try {
+            switch (temaSeleccionado) {
+                case "Claro":
+                    UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
+                    break;
+                case "Oscuro":
+                    UIManager.setLookAndFeel("com.formdev.flatlaf.FlatDarkLaf");
+                    break;
+                case "Usar configuración del sistema":
+                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                    break;
+            }
+
+            // Actualiza todos los componentes abiertos
+            SwingUtilities.updateComponentTreeUI(this);
+            this.pack(); // opcional: ajusta tamaño si cambia el estilo
+
+            JOptionPane.showMessageDialog(config, "Tema aplicado: " + temaSeleccionado);
+            config.dispose();
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(config, "Error al aplicar el tema", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    });
+
+    config.setVisible(true);
     }//GEN-LAST:event_ConfiguracionActionPerformed
 
     private void HistorialActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_HistorialActionPerformed
