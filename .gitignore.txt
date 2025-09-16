@@ -1,0 +1,11 @@
+# Ignorar archivos generados por NetBeans/IDE
+/nbproject/private/
+
+# Ignorar la carpeta de compilación de Java
+/build/
+
+# Ignorar los archivos .class en cualquier lugar
+*.class
+
+# Archivos del sistema operativo y otros
+.DS_Store
